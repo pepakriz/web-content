@@ -2,12 +2,12 @@ Debugování a zpracování chyb
 ****************************
 
 /--div .[perex]
-Knihovna Nette\Diagnostics\Debugger (NDebugger v PHP 5.2), která zdomácněla pod jménem *Laděnka*, je užitečnou každodenní pomocnicí PHP programátora. Pomůže vám
+Knihovna Nette\Diagnostics\Debugger (NDebugger v PHP 5.2), která zdomácněla pod jménem *Laděnka*, je užitečnou každodenní pomocnicí PHP programátora. Pomůže vám:
 
-- rychle odhalit a opravit chyby
-- logovat chyby
-- jak vypisovat proměnné
-- a měřit čas
+- rychle odhalit a opravit chyby,
+- logovat chyby,
+- vypisovat proměnné,
+- a měřit čas.
 \--
 
 
@@ -16,12 +16,11 @@ PHP je jazyk na sekání těžko odhalitelných chyb jako stvořený, neboť dá
 *Laděnku* aktivujeme snadno, stačí do kódu, nejlépe hned za načtení frameworku, přidat:
 
 /--php
-use Nette\Diagnostics\Debugger;
-
-Debugger::enable(); // aktivujeme Laděnku
+Nette\Diagnostics\Debugger::enable(); // aktivujeme Laděnku
 \--
 
 První, čeho si můžete na stránce všimnout, Debugger Bar.
+
 
 
 Debugger Bar
@@ -31,7 +30,16 @@ Debugger Bar je plovoucí panel, který se zobrazí v pravém dolním rohu strá
 
 [* debugger-bar.png *]
 
-Do Debugger Baru lze přidávat další užitečné panely. Řadu jich najdete v [doplňcích |addons:homepage].
+Přímo v Debugger Baru je zobrazena ikonka a stručná informace daného panelu. Při najetí myší nad tuto část se nám zobrazí obsah daného panelu. Při kliknutí nám tab zůstane otevřený a to i po znovunačtení stránky. Panel si můžeme otevřít i do nového okna, stačí v pravém horním rohu kliknout na tlačítko "`¤`"((open in new window)).
+
+
+Do Debugger Baru lze přidávat další užitečné panely. Řadu již existujících panelů najdete v [doplňcích |addons:homepage], případně si můžete vytvořit vlastní, stačí pouze implementovat rozhraní [IBarPanel | api:Nette\Diagnostics\IBarPanel], jehož obě metody vrací HTML kód panelu (nebo `NULL`, kdy panel nebude zobrazen). Následně jej stačí už jen zaregistrovat:
+
+/--php
+Debugger::$bar->addPanel(new MyAwesomePanel());
+\--
+
+Podrobnější návod na tvorbu vlastních panelů naleznete [na fóru | http://forum.nette.org/cs/7221].
 
 
 Vizualizace chyb a výjimek
@@ -73,22 +81,27 @@ A víte co? Tímto způsobem zachytí a zobrazí i fatální chyby. Bez nutnosti
 [* debugger2.png *]:http://examples.nette.org/ndebug/nette-error.html
 
 
-Chyby jako překlep v názvu proměnné nebo pokus o otevření neexistujícího souboru generují hlášení úrovně E_NOTICE nebo E_WARNING. Ty lze v grafice stránky snadno přehlédnout, dokonce nemusí být viditelná vůbec (leda pohledem do kódu stránky).
+Chyby jako překlep v názvu proměnné nebo pokus o otevření neexistujícího souboru generují hlášení úrovně `E_NOTICE` nebo `E_WARNING`. Ty lze v grafice stránky snadno přehlédnout, dokonce nemusí být viditelná vůbec (leda pohledem do kódu stránky). Zapneme si proto striktní mód, kdy bude Laděnka interpretovat i tyto chyby nižší závažnosti:
 
 /---php
 Debugger::$strictMode = TRUE;
 \---
 
 
-Abychom odhalili i překlepy při přiřazení do proměnné objektu, podědíme své třídy od Nette\Object.
+Pro ještě větší komfort, abychom odhalili i překlepy při přiřazení do proměnné objektu, podědíme své třídy od Nette\Object - více informací v části [Rozšíření jazyka PHP | doc:php-language-enhancements].
 
 
-Dále můžeme změnit hloubku zanoření pomocí [Debugger::$maxDepth | api:Nette\Diagnostics\Debugger::$maxDepth] a délku zobrazovaných popisek pomocí [Debugger::$maxLen | api:Nette\Diagnostics\Debugger::$maxLen]. Nižší hodnoty laděnku přirozeně zrychlí.
+Dále můžeme změnit hloubku zanoření zobrazovaných informací pomocí [Debugger::$maxDepth | api:Nette\Diagnostics\Debugger::$maxDepth] a délku zobrazovaných popisek pomocí [Debugger::$maxLen | api:Nette\Diagnostics\Debugger::$maxLen]. Nižší hodnoty laděnku přirozeně zrychlí.
 
 /--php
-Debugger::$maxDepth = 2; // default: 3
-Debugger::$maxLen = 50; // default: 150
+Debugger::$maxDepth = 2; // výchozí: 3
+Debugger::$maxLen = 50; // výchozí: 150
 \--
+
+Laděnku lze dále nastavit tak, aby při kliknutí na název souboru automaticky otevřela soubor v externím editoru. Slouží k tomu proměnná [Debugger::$editor | api:Nette\Diagnostics\Debugger::$editor].
+ Konfigurace nicméně závisí na nastavení prohlížeče, další informace můžete nalézt
+v [článku na Wiki | wiki:cs/jak-otevrit-soubor-z-debuggeru-v-editoru] a [na fóru | http://forum.nette.org/cs/5464].
+
 
 
 Produkční režim a logování chyb
@@ -98,76 +111,94 @@ Jak vidíte, Laděnka je poměrně výřečná, což lze ocenit ve vývojovém p
 
 [* debugger3.png *]
 
-Produkční režim potlačí zobrazování všech ladících informacích, které posíláme ven pomocí [Debugger::dump() | #Dump proměnných] nebo [Debugger::fireLog() |#Firebug a FireLogger], a samozřejmě také všech chybových zpráv, které generuje PHP. Pokud jste tedy v kódu zapomněli nějaké `Debugger::dump($obj)`, nemusíte se obávat, na produkčním serveru se nic nevypíše.
+Produkční režim potlačí zobrazování všech ladících informací, které posíláme ven pomocí [Debugger::dump() | #Dump proměnných], [Debugger::barDump() | #Dump proměnných] nebo [Debugger::fireLog() |#Firebug a FireLogger], a samozřejmě také všech chybových zpráv, které generuje PHP. Pokud jste tedy v kódu zapomněli nějaké volání `Debugger::dump($var)`, nemusíte se obávat, na produkčním serveru se nic nevypíše.
 
-K přepínání režimů slouží první parametr metody `Debugger::enable()`, kde lze uvést buď konstantu `Debugger::PRODUCTION` nebo `Debugger::DEVELOPMENT`.
+K přepínání režimů slouží první parametr metody `Debugger::enable()`, kde lze uvést buď konstantu `Debugger::PRODUCTION` nebo `Debugger::DEVELOPMENT`. Pokud jej neuvedeme, má výchozí hodnotu `Debugger::DETECT` a v takovém případě se detekuje režim podle IP adresy - je-li k serveru přistupováno zvenčí přes veřejnou IP adresu, poběží v produkčním režimu, je-li k němu přistupováno lokálně, poběží ve vývojářském. V drtivé většině případů tak není potřeba režim nastavovat manuálně a správně se rozezná automaticky podle toho, jestli aplikaci spouštíme na svém lokálním serveru nebo v ostrém provozu.
 
-Pokud jej neuvedeme, má výchozí hodnotu `Debugger::DETECT` a v takovém případě se detekuje režim podle IP adresy serveru - je-li dostupný přes veřejnou IP adresu, běží v produkčním režimu, je-li na lokální, tak ve vývojářském. V drtivé většině případů tak není potřeba režim nastavovat a správně se rozezná podle toho, jestli aplikaci spouštíme na svém lokálním serveru nebo v ostrém provozu.
+Laděnka nám dále umožňuje zadat výčet IP adres, které se budou považovat za vývojové. To může být užitečné zejména pokud nám např. běží vývojový server na jiném stroji v lokální síti. V takovém případě v prvním parametru `Debugger::enable()` uvedeme IP adresy, pro něž má být vývojový režim vždy zapnutý, jako pole popř. jako řetězec oddělený čárkami. Adresy `127.0.0.1` a `::1` není třeba uvádět, jsou přidány automaticky.
 
-V produkčním režimu Laděnka automaticky všechny chyby a zachycené výjimky zaznamenává do textového logu. Pokud neurčíme jinak, půjde o soubor `log/error.log`. Logování chyb je přitom nesmírně užitečné. Představte si, že všichni uživatelé vaší aplikace jsou vlastně betatesteři, kteří zdarma odvádějí špičkovou práci v hledání chyb a vy byste udělal hloupost, kdybyste jejich cenné reporty zahodil bez povšimnutí do odpadkového koše.
+V produkčním režimu Laděnka automaticky všechny chyby a zachycené výjimky zaznamenává do textového logu. Logování chyb je přitom nesmírně užitečné. Představte si, že všichni uživatelé vaší aplikace jsou vlastně betatesteři, kteří zdarma odvádějí špičkovou práci v hledání chyb a vy byste udělali hloupost, kdybyste jejich cenné reporty zahodili bez povšimnutí do odpadkového koše.
 
-Pokud potřebujeme zalogovat vlastní zprávu nebo vámi zachycenou výjimku, použijeme k tomu metodu `log()`:
+Pokud potřebujeme zalogovat vlastní zprávu nebo zachycenou výjimku, použijeme k tomu metodu `Debugger::log()`. U logovaných zpráv lze navíc ještě rozlišit jejich závažnost (prioritu). Laděnka rozeznává pět typů závažnosti: `Debugger::DEBUG`, `Debugger::INFO` (výchozí), `Debugger::WARNING`, `Debugger::ERROR` a `Debugger::CRITICAL`, nic nám ovšem nebrání použít vlastní typ závažnosti.
 
 /--php
-Debugger::log('Doslo k necekane chybe'); // textová zpráva
+Debugger::log('Došlo k nečekané chybě'); // textová zpráva defaultní závažnosti "info"
+// nebo
+Debugger::log('Došlo k nečekané chybě', Debugger::ERROR); // textová zpráva vysoké závažnosti
+// nebo
+Debugger::log('Došlo k nečekané chybě', 'import'); // textová zpráva vlastní závažnosti
 
 try {
 	kritickaOperace();
-} catch (Exception $e) {
+} catch (\Exception $e) { // zachycení všech výjimek
 	Debugger::log($e); // logovat lze i výjimku
-	// nebo Debugger::log($e, Debugger::ERROR) odešle i e-mailovou notifikaci
+	// nebo
+	Debugger::log($e, Debugger::ERROR); // zalogování výjimky vysoké závažnosti
 }
 \--
 
-Jiný adresář pro logování chyb lze nastavit druhým parametrem metody enable():
+Pokud neurčíme jinak, budou se chyby zaznamenávat do složky `log/` relativně od [aktuální pracovní složky|php:getcwd]. Jiný adresář pro logování chyb lze nastavit druhým parametrem metody `Debugger::enable()`:
 
 /--php
 Debugger::enable(Debugger::DETECT, __DIR__ . '/mylog');
 \--
 
-Pro skutečného profíka je error log klíčovým zdrojem informací a chce být ihned informován o každé nové chybě. Laděnka mu v tom vychází vstříc, umí totiž o novém záznamu v logu informovat e-mailem. Kam odesílat emaily určíme proměnnou $email:
+Název souboru, do kterého bude chyba zalogována, je určena právě závažností chyby - např. pro závažnost `Debugger::ERROR` přísluší soubor `error.log`, pro `Debugger::INFO` soubor `info.log` atp.
+
+
+Pro skutečného profíka je logování chyb klíčovým zdrojem informací a chce být ihned informován o každé nové chybě. Laděnka mu v tom vychází vstříc, umí totiž o novém záznamu v logu informovat e-mailem. Kam odesílat emaily určíme buď třetím parametrem `Debugger::enable()` nebo proměnnou [Debugger::$email | api:Nette\Diagnostics\Debugger::$email]:
 
 /--php
+Debugger::enable(Debugger::DETECT, __DIR__ . '/log', 'admin@example.com');
+// nebo
 Debugger::$email = 'admin@example.com';
 \--
 
-Alternativně je také možné toto nastavit v konfiguračním souboru:
+Alternativně je také možné e-mail nastavit v konfiguračním souboru:
 /--code neon
 common:
 	nette:
 		debugger:
 			email: admin@example.com
-
 \--
 
-Aby vám však nezaplavila e-mailovou schránku, pošle vždy **pouze jednu zprávu** a vytvoří soubor `email-sent`. Vývojář po přijetí e-mailové notifikace zkontroluje log, opraví aplikaci a smaže monitorovací soubor, čímž se opět aktivuje odesílání e-mailů.
+Aby vám však Laděnka nezaplavila e-mailovou schránku, pošle vždy **pouze jednu zprávu** a vytvoří soubor `email-sent`. Vývojář po přijetí e-mailové notifikace zkontroluje log, opraví aplikaci a smaže monitorovací soubor, čímž se opět aktivuje odesílání e-mailů. Prodleva mezi odesláními je ve výchozím nastavení 48 hodin, lze ji samozřejmě změnit nastavením počtu sekund proměnné [Logger::$emailSnooze | api:Nette\Diagnostics\Logger::$emailSnooze]:
+
+/--php
+Nette\Diagnostics\Logger::$emailSnooze = 60 * 60 * 24; // nastavení prodlevy na 1 den
+\--
 
 
 
 Dump proměnných
 ---------------
 
-Každý ladič je dobrým kamarádem s funkcí [php:var_dump], která podrobně vypíše obsah proměnné. Bohužel v prostředí HTML výpis pozbude formátování a slije se do jednoho řádku, o sanitizaci HTML kódu ani nemluvě. V praxi je nezbytné `var_dump` nahradit šikovnější funkcí. Tou je právě `Debugger::dump()`
+Každý ladič je dobrým kamarádem s funkcí [php:var_dump], která podrobně vypíše obsah proměnné. Bohužel v prostředí HTML výpis pozbude formátování a slije se do jednoho řádku, o sanitizaci HTML kódu ani nemluvě. V praxi je tedy nezbytné `var_dump` nahradit šikovnější funkcí. Laděnka disponuje hned několika způsoby.
+
+Základní variantou je právě `Debugger::dump()`. Ta nám informace o proměnné vypíše na výstup přímo v místě, kde byla zavolána. (Toto chování lze změnit uvedením `TRUE` v druhém parametru, čímž docílíme vrácení výstupu jako řetězce namísto jeho vypsání.)
 
 /--php
 $arr = array(10, 20.2, TRUE, NULL, 'hello');
 
 Debugger::dump($arr);
-// včetně jmenného prostoru Nette\Diagnostics\Debugger::dump($arr);
 \--
 
 vygeneruje výstup:
 
-/--pre
-<pre><span style="color:gray">array</span>(5) {
-  [0] => <span style="color:gray">int</span>(10)
-  [1] => <span style="color:gray">float</span>(20.2)
-  [2] => <span style="color:gray">bool</span>(true)
-  [3] => <span style="color:gray">NULL</span>
-  [4] => <span style="color:gray">string</span>(5) "hello"
-}
-</pre>
+[* debugger-dump.png *]
+
+Pokud bychom si těmito informacemi nechtěli špinit samotný výstup, můžeme použít alternativu - `Debugger::barDump()`, která nám informace vypíše v [Debugger Baru | #Debugger Bar]. Pokud bychom dumpovali více hodnot najednou, pro snadné rozlišení v panelu můžeme v druhém parametru daný dump libovolně pojmenovat.
+
+/--php
+$arr = array(10, 20.2, TRUE, NULL, 'hello');
+
+Debugger::barDump($arr);
 \--
+
+vygeneruje výstup v panelu:
+
+[* debugger-bardump.png *]
+
 
 
 Měření času
@@ -182,10 +213,10 @@ Debugger::timer();
 sleep(2);
 
 $elapsed = Debugger::timer();
-// $elapsed ? 2
+// $elapsed bude mít hodnotu 2
 \--
 
-Volitelným parametrem je možno dosáhnout vícenásobných měření.
+Volitelným parametrem je možno dosáhnout vícenásobných měření ve stejnou dobu.
 
 /--php
 Debugger::timer('page-generating');
@@ -199,19 +230,6 @@ $pageElapsed = Debugger::timer('page-generating');
 
 
 
-/--php
-Debugger::timer(); // zapne stopky
-
-... // časově náročná operace
-
-echo Debugger::timer(); // vypíše uplynulý čas v sekundách
-\--
-
-
-
-
-
-
 Firebug a FireLogger
 --------------------
 
@@ -219,10 +237,10 @@ Ne vždy lze ladící informace posílat do okna prohlížeče. Týká se to AJA
 
 Jak na to?
 
-1) stáhněte a pusťte si prohlížeč Firefox
-2) stáhněte si rozšíření [Firebug | http://www.getfirebug.com]
-3) stáhněte si rozšíření [FireLogger | http://firelogger.binaryage.com]
-4) restartujte prohlížeč, zapněte Firebug (klávesou F12) a povolte panely Síť (Net) a Logger
+1) Stáhněte a pusťte si [prohlížeč Firefox | http://getfirefox.com].
+2) Stáhněte si rozšíření [Firebug | http://www.getfirebug.com].
+3) Stáhněte si rozšíření [FireLogger | http://firelogger.binaryage.com].
+4) Restartujte prohlížeč, zapněte Firebug (klávesou F12) a povolte panely Síť (Net) a Logger.
 
 
 ... Otevřete si náš prográmek a klikněte na panel Konzole. Ha! Sem se přesunula chybová hláška.
@@ -230,8 +248,6 @@ Jak na to?
 Protože Nette\Diagnostics\Debugger komunikuje s Firebugem přes HTTP hlavičky, je nutné volat logovací funkce ještě před tím, než PHP skript cokoliv odešle na výstup. Také je možné zapnout [output buffering | http://php.net/manual/en/function.ob-start.php] a tím výstup oddálit.
 
 /--php
-use Nette\Diagnostics\Debugger;
-
 Debugger::fireLog('Hello World'); // vypíšeme řetězec do konzoly Firebugu
 
 Debugger::fireLog($_SERVER); // do konzoly lze vypsat i pole nebo objekty
@@ -243,6 +259,7 @@ Výsledek vypadá asi takto:
 
 [* firelogger.png *]
 
+Obdobně jako u Laděnky, i FireLogger umí otevírat soubory v externím editoru. Toto chování je nutné nakonfigurovat v nastavení Firebugu v části: *Firebug Menu -> Open With Editor -> Configure Editors*. Zde je nutné přidat nový editor, uvést cestu a argumenty. Konkrétní nastavení pro různé editory můžete nalézt [na fóru | http://forum.nette.org/cs/5681-jak-nastavit-firelogger-aby-oteviral-soubory-ve-vasem-editoru].
 
 
 
@@ -253,17 +270,6 @@ Nette Framework je koncipován jako otevřený framework. To znamená, že i jeh
 
 
 
-
-
-/--comment
-TODO:
-- [Zapnutí laděnky na produkčním serveru | wiki:cs:Faq#Zapnutí laděnky na produkčním serveru
-- Odkaz na HOWTO: [Jak na otevírání souborů v editoru přímo z chybové stránky Nette\Debug | wiki:cs/howto-editor-link]
-- dump()
-http://forum.nette.org/cs/5464-jak-nastavit-nette-debug-aby-oteviral-soubory-ve-vasem-editoru
-http://forum.nette.org/cs/7221-jak-psat-rozsireni-pro-debugger-bar
-http://forum.nette.org/cs/5681-jak-nastavit-firelogger-aby-oteviral-soubory-ve-vasem-editoru
-\--
 
 
 {{themeicon: icon-bulb.png}}
